@@ -1,0 +1,156 @@
+{% extends "rest_framework/base.html" %}
+
+{% block title %}Gitako API Documentation{% endblock %}
+
+{% block branding %}
+<a class="navbar-brand" href="{% url 'api-root' %}">
+    Gitako API Documentation
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="jumbotron">
+        <h1>Gitako API Documentation</h1>
+        <p class="lead">
+            Welcome to the Gitako API documentation. This guide will help you understand how to use our API
+            to integrate with the Gitako platform.
+        </p>
+        <p>
+            <a class="btn btn-lg btn-primary" href="{% url 'schema-swagger-ui' %}" role="button">
+                Interactive API Documentation &raquo;
+            </a>
+            <a class="btn btn-lg btn-success" href="{% url 'schema-redoc' %}" role="button">
+                ReDoc Documentation &raquo;
+            </a>
+        </p>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4">
+            <h2>Authentication</h2>
+            <p>
+                The Gitako API uses token-based authentication. You need to include an
+                <code>Authorization</code> header with your requests.
+            </p>
+            <h4>Example:</h4>
+            <pre>Authorization: Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...</pre>
+            <p>
+                <a class="btn btn-default" href="/api/auth/login/" role="button">
+                    Get Token &raquo;
+                </a>
+            </p>
+        </div>
+        <div class="col-md-4">
+            <h2>Endpoints</h2>
+            <p>The API is organized around the following main resources:</p>
+            <ul>
+                <li><a href="/api/v1/farms/">Farms</a> - Manage farm properties</li>
+                <li><a href="/api/v1/fields/">Fields</a> - Manage fields within farms</li>
+                <li><a href="/api/v1/marketplace/">Marketplace</a> - Buy and sell farm products</li>
+                <li><a href="/api/v1/activities/">Activities</a> - Track farming activities</li>
+                <li><a href="/api/v1/inventory/">Inventory</a> - Manage farm inventory</li>
+                <li><a href="/api/v1/financials/">Financials</a> - Track financial records</li>
+                <li><a href="/api/v1/recommendations/">Recommendations</a> - Get AI-powered recommendations</li>
+            </ul>
+        </div>
+        <div class="col-md-4">
+            <h2>API Versions</h2>
+            <p>
+                The current version of the API is <strong>v1</strong>. All API requests should be prefixed with
+                <code>/api/v1/</code>.
+            </p>
+            <h4>Rate Limits</h4>
+            <p>
+                API requests are limited to:
+                <ul>
+                    <li>Authenticated users: 1000 requests per day</li>
+                    <li>Anonymous users: 100 requests per day</li>
+                </ul>
+            </p>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Quick Start Guide</h2>
+            <p>Here's a simple example of how to use the Gitako API with Python:</p>
+            <pre>
+import requests
+import json
+
+# Authentication
+auth_response = requests.post(
+    'https://api.gitako.com/api/auth/login/',
+    data={'username': 'your_username', 'password': 'your_password'}
+)
+token = auth_response.json()['access']
+
+# Set up headers
+headers = {
+    'Authorization': f'Bearer {token}',
+    'Content-Type': 'application/json'
+}
+
+# Get list of farms
+farms_response = requests.get(
+    'https://api.gitako.com/api/v1/farms/',
+    headers=headers
+)
+farms = farms_response.json()
+
+# Create a new farm
+new_farm = {
+    'name': 'My New Farm',
+    'farm_type': 'crop',
+    'size': 10.5,
+    'size_unit': 'hectare',
+    'location': 'Sample Location',
+    'city': 'Sample City',
+    'state': 'Sample State',
+    'country': 'Sample Country'
+}
+
+create_response = requests.post(
+    'https://api.gitako.com/api/v1/farms/',
+    headers=headers,
+    data=json.dumps(new_farm)
+)
+created_farm = create_response.json()
+            </pre>
+        </div>
+    </div>
+
+    <hr>
+
+    <div class="row">
+        <div class="col-md-12">
+            <h2>Error Handling</h2>
+            <p>
+                The API uses standard HTTP status codes to indicate the success or failure of requests.
+                In general:
+            </p>
+            <ul>
+                <li><strong>2xx</strong> - Success</li>
+                <li><strong>4xx</strong> - Client error (invalid request)</li>
+                <li><strong>5xx</strong> - Server error</li>
+            </ul>
+            <p>Error responses include a JSON body with details about the error:</p>
+            <pre>
+{
+    "detail": "Authentication credentials were not provided."
+}
+            </pre>
+            <p>Or for validation errors:</p>
+            <pre>
+{
+    "name": ["This field is required."],
+    "size": ["A valid number is required."]
+}
+            </pre>
+        </div>
+    </div>
+</div>
+{% endblock %}

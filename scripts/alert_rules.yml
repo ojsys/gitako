@@ -1,0 +1,38 @@
+groups:
+  - name: gitako_alerts
+    rules:
+      - alert: HighErrorRate
+        expr: sum(rate(django_http_requests_total{status=~"5.."}[5m])) / sum(rate(django_http_requests_total[5m])) > 0.05
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 5% for the last 5 minutes"
+
+      - alert: SlowResponseTime
+        expr: histogram_quantile(0.95, sum(rate(django_http_request_duration_seconds_bucket[5m])) by (le)) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow response time detected"
+          description: "95th percentile response time is above 1 second for the last 5 minutes"
+
+      - alert: HighAPITraffic
+        expr: sum(rate(django_http_requests_total[1m])) > 100
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API traffic detected"
+          description: "API is receiving more than 100 requests per second"
+
+      - alert: DatabaseBackupFailure
+        expr: time() - gitako_database_backup_success_timestamp > 86400
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database backup failure"
+          description: "No successful database backup in the last 24 hours"

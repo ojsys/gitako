@@ -1,0 +1,2 @@
+# Database backup every day at 2:00 AM
+0 2 * * * cd /var/www/gitako && source venv/bin/activate && python manage.py backup_database --upload-to-s3 --settings=gitako.settings.production >> /var/log/gitako/backup.log 2>&1
