@@ -3,7 +3,7 @@ from .views import api_root
 
 urlpatterns = [
     # API root view
-    path('', api_root, name='api-root'),
+    path('api1', api_root, name='api-root'),
     
     # App endpoints
     path('accounts/', include('apps.accounts.urls')),

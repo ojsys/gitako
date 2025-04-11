@@ -1,14 +1,17 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
-    InputInventoryViewSet, ProduceInventoryViewSet, InventoryTransactionViewSet
+    InventoryItemViewSet, EquipmentViewSet, FarmInputViewSet,
+    InventoryTransactionViewSet, MaintenanceRecordViewSet
 )
 
 router = DefaultRouter()
-router.register(r'inputs', InputInventoryViewSet, basename='input-inventory')
-router.register(r'produce', ProduceInventoryViewSet, basename='produce-inventory')
+router.register(r'items', InventoryItemViewSet, basename='inventory-item')
+router.register(r'equipment', EquipmentViewSet, basename='equipment')
+router.register(r'inputs', FarmInputViewSet, basename='farm-input')
 router.register(r'transactions', InventoryTransactionViewSet, basename='inventory-transaction')
+router.register(r'maintenance', MaintenanceRecordViewSet, basename='maintenance-record')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('inventory/', include(router.urls)),
 ]

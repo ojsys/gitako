@@ -16,5 +16,5 @@ router.register(r'harvest', HarvestActivityViewSet, basename='harvest')
 router.register(r'reminders', ActivityReminderViewSet, basename='reminder')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('activities/', include(router.urls)),
 ]

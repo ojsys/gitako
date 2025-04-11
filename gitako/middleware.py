@@ -3,8 +3,13 @@ import uuid
 import json
 import logging
 from django.utils import timezone
+from django.http import JsonResponse
 from django.conf import settings
 from prometheus_client import Counter, Histogram
+import traceback
+
+
+logger = logging.getLogger('gitako.api')
 
 # Define Prometheus metrics
 REQUEST_COUNT = Counter(
@@ -128,3 +133,122 @@ class APIAnalyticsMiddleware:
             parts = parts[:4] + ['...']
         
         return '/' + '/'.join(parts)
+
+
+
+class RequestIDMiddleware:
+    """
+    Middleware that adds a unique request ID to each request.
+    This helps with tracing requests through logs.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        request_id = str(uuid.uuid4())
+        request.id = request_id
+        
+        # Add the request ID to the response headers
+        response = self.get_response(request)
+        response['X-Request-ID'] = request_id
+        
+        return response
+
+class ExceptionMiddleware:
+    """
+    Middleware that handles exceptions and returns appropriate responses.
+    Also logs exceptions for monitoring and debugging.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        return self.get_response(request)
+
+    def process_exception(self, request, exception):
+        # Generate a unique error ID
+        error_id = str(uuid.uuid4())
+        
+        # Get the request ID if available
+        request_id = getattr(request, 'id', 'unknown')
+        
+        # Log the exception with details
+        logger.error(
+            f"Exception occurred [Error ID: {error_id}] [Request ID: {request_id}]",
+            exc_info=True,
+            extra={
+                'error_id': error_id,
+                'request_id': request_id,
+                'user_id': request.user.id if request.user.is_authenticated else None,
+                'path': request.path,
+                'method': request.method,
+                'query_params': dict(request.GET.items()),
+            }
+        )
+        
+        # Prepare the response based on the environment
+        if settings.DEBUG:
+            # In development, include more details
+            response_data = {
+                'error': str(exception),
+                'error_id': error_id,
+                'request_id': request_id,
+                'traceback': traceback.format_exc(),
+            }
+        else:
+            # In production, keep it simple
+            response_data = {
+                'error': 'An unexpected error occurred',
+                'error_id': error_id,
+                'request_id': request_id,
+            }
+        
+        # Return a JSON response
+        return JsonResponse(response_data, status=500)
+
+class APILoggingMiddleware:
+    """
+    Middleware that logs API requests and responses.
+    """
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        # Skip logging for non-API requests
+        if not request.path.startswith('/api/'):
+            return self.get_response(request)
+        
+        # Get request details
+        request_id = getattr(request, 'id', str(uuid.uuid4()))
+        method = request.method
+        path = request.path
+        query_params = dict(request.GET.items())
+        
+        # Log the request
+        logger.info(
+            f"API Request: {method} {path}",
+            extra={
+                'request_id': request_id,
+                'method': method,
+                'path': path,
+                'query_params': query_params,
+                'user_id': request.user.id if hasattr(request, 'user') and request.user.is_authenticated else None,
+            }
+        )
+        
+        # Process the request
+        response = self.get_response(request)
+        
+        # Log the response
+        logger.info(
+            f"API Response: {method} {path} {response.status_code}",
+            extra={
+                'request_id': request_id,
+                'method': method,
+                'path': path,
+                'status_code': response.status_code,
+                'response_time': getattr(request, '_start_time', 0),
+            }
+        )
+        
+        return response

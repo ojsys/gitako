@@ -1,0 +1,732 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ site_settings.site_name }} - {{ site_settings.hero_title }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    :root {
+        --primary-green: #4CAF50;
+        --dark-green: #388E3C;
+        --light-green: #8BC34A;
+        --pale-green: #E8F5E9;
+        --accent-green: #00C853;
+    }
+    
+    body {
+        font-family: 'Inter', 'Segoe UI', Roboto, sans-serif;
+        color: #333;
+        background-color: #FAFAFA;
+    }
+    
+    /* Hero slider styles - modernized */
+    .hero-slider {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        margin-bottom: 60px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    .hero-slide {
+        height: 600px;
+        background-size: cover;
+        background-position: center;
+        position: relative;
+        display: none;
+    }
+    
+    .hero-slide.active {
+        display: block;
+        animation: fadeIn 0.8s ease-in-out;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0.7; }
+        to { opacity: 1; }
+    }
+    
+    .hero-slide-content {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.3));
+        color: white;
+        padding: 100px 0;
+        display: flex;
+        align-items: center;
+    }
+    
+    .hero-slider-controls {
+        position: absolute;
+        bottom: 30px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        z-index: 10;
+    }
+    
+    .hero-slider-dot {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        background-color: rgba(255, 255, 255, 0.5);
+        border-radius: 50%;
+        margin: 0 5px;
+        cursor: pointer;
+        transition: all 0.3s;
+    }
+    
+    .hero-slider-dot.active {
+        background-color: white;
+        width: 30px;
+        border-radius: 10px;
+    }
+    
+    /* Static hero fallback - modernized */
+    .hero-section {
+        background: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.4)), url('{{ site_settings.default_hero_image.url }}');
+        background-size: cover;
+        background-position: center;
+        color: white;
+        padding: 120px 0;
+        border-radius: 16px;
+        margin-bottom: 60px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Feature cards - modernized */
+    .feature-card {
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-radius: 16px;
+        overflow: hidden;
+        height: 100%;
+        border: none;
+        background-color: white;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(76, 175, 80, 0.15);
+    }
+    
+    .feature-icon {
+        font-size: 3.5rem;
+        color: var(--primary-green);
+        margin-bottom: 20px;
+        transition: transform 0.3s;
+    }
+    
+    .feature-card:hover .feature-icon {
+        transform: scale(1.1);
+    }
+    
+    /* Statistics - modernized */
+    .stats-section {
+        background-color: var(--pale-green);
+        padding: 60px 0;
+        border-radius: 16px;
+        margin-bottom: 60px;
+    }
+    
+    .stat-card {
+        text-align: center;
+        padding: 40px 30px;
+        border-radius: 16px;
+        background-color: white;
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .stat-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(76, 175, 80, 0.15);
+    }
+    
+    .stat-value {
+        font-size: 3rem;
+        font-weight: 700;
+        color: var(--primary-green);
+        margin-bottom: 10px;
+    }
+    
+    /* How it works section - modernized */
+    .how-it-works-section {
+        background-color: white;
+        padding: 60px 0;
+        border-radius: 16px;
+        margin-bottom: 60px;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+    }
+    
+    .step-card {
+        position: relative;
+        padding: 40px 30px;
+        border-radius: 16px;
+        background-color: white;
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        transition: transform 0.3s, box-shadow 0.3s;
+        border-left: 5px solid var(--primary-green);
+        height: 100%;
+    }
+    
+    .step-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(76, 175, 80, 0.15);
+    }
+    
+    .step-number {
+        position: absolute;
+        top: -20px;
+        left: 30px;
+        width: 50px;
+        height: 50px;
+        background-color: var(--primary-green);
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        font-size: 1.5rem;
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.3);
+    }
+    
+    /* CTA section - modernized */
+    .cta-section {
+        background: linear-gradient(135deg, var(--primary-green), var(--dark-green));
+        color: white;
+        padding: 80px 0;
+        border-radius: 16px;
+        margin: 60px 0;
+        box-shadow: 0 15px 30px rgba(76, 175, 80, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .cta-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.343 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.5;
+    }
+    
+    .btn-cta {
+        background-color: white;
+        color: var(--primary-green);
+        font-weight: 600;
+        padding: 12px 30px;
+        border-radius: 50px;
+        transition: all 0.3s;
+        border: 2px solid white;
+    }
+    
+    .btn-cta:hover {
+        background-color: transparent;
+        color: white;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    /* Testimonials - modernized */
+    .testimonial-card {
+        border-radius: 16px;
+        overflow: hidden;
+        transition: transform 0.3s, box-shadow 0.3s;
+        border: none;
+        background-color: white;
+    }
+    
+    .testimonial-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(76, 175, 80, 0.15);
+    }
+    
+    .testimonial-img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid var(--primary-green);
+    }
+    
+    .testimonial-quote {
+        position: relative;
+        padding-left: 25px;
+    }
+    
+    .testimonial-quote::before {
+        content: '"';
+        position: absolute;
+        left: 0;
+        top: -15px;
+        font-size: 50px;
+        color: var(--light-green);
+        font-family: Georgia, serif;
+        opacity: 0.5;
+    }
+    
+    /* Footer styles */
+    .footer {
+        background-color: #2E7D32;
+        color: white;
+        padding: 80px 0 40px;
+        margin-top: 60px;
+    }
+    
+    .footer-logo {
+        font-size: 1.8rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        display: block;
+    }
+    
+    .footer-about {
+        margin-bottom: 30px;
+    }
+    
+    .footer h5 {
+        font-weight: 600;
+        margin-bottom: 25px;
+        position: relative;
+        padding-bottom: 10px;
+    }
+    
+    .footer h5::after {
+        content: '';
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 40px;
+        height: 3px;
+        background-color: var(--light-green);
+    }
+    
+    .footer-links {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .footer-links li {
+        margin-bottom: 15px;
+    }
+    
+    .footer-links a {
+        color: rgba(255, 255, 255, 0.8);
+        text-decoration: none;
+        transition: all 0.3s;
+        display: block;
+    }
+    
+    .footer-links a:hover {
+        color: white;
+        transform: translateX(5px);
+    }
+    
+    .footer-contact-item {
+        display: flex;
+        align-items: flex-start;
+        margin-bottom: 20px;
+    }
+    
+    .footer-contact-icon {
+        color: var(--light-green);
+        margin-right: 15px;
+        font-size: 20px;
+    }
+    
+    .footer-social {
+        display: flex;
+        gap: 15px;
+        margin-top: 20px;
+    }
+    
+    .footer-social a {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        background-color: rgba(255, 255, 255, 0.1);
+        color: white;
+        border-radius: 50%;
+        transition: all 0.3s;
+    }
+    
+    .footer-social a:hover {
+        background-color: var(--light-green);
+        transform: translateY(-5px);
+    }
+    
+    .footer-bottom {
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        padding-top: 30px;
+        margin-top: 50px;
+    }
+    
+    .footer-bottom-links a {
+        color: rgba(255, 255, 255, 0.7);
+        margin-left: 20px;
+        text-decoration: none;
+        transition: color 0.3s;
+    }
+    
+    .footer-bottom-links a:hover {
+        color: white;
+    }
+    
+    /* Section titles */
+    .section-title {
+        position: relative;
+        margin-bottom: 50px;
+    }
+    
+    .section-title::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        bottom: -15px;
+        transform: translateX(-50%);
+        width: 80px;
+        height: 4px;
+        background: linear-gradient(to right, var(--primary-green), var(--light-green));
+        border-radius: 2px;
+    }
+    
+    /* Buttons */
+    .btn-primary {
+        background-color: var(--primary-green);
+        border-color: var(--primary-green);
+        border-radius: 50px;
+        padding: 10px 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .btn-primary:hover {
+        background-color: var(--dark-green);
+        border-color: var(--dark-green);
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(76, 175, 80, 0.2);
+    }
+    
+    .btn-outline-light {
+        border-radius: 50px;
+        padding: 10px 25px;
+        font-weight: 600;
+        transition: all 0.3s;
+    }
+    
+    .btn-outline-light:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Slider Section -->
+{% if hero_sliders %}
+<div class="container mt-5">
+    <div class="hero-slider">
+        {% for slider in hero_sliders %}
+        <div class="hero-slide {% if forloop.first %}active{% endif %}" id="slide-{{ forloop.counter }}" style="background-image: url('{{ slider.image.url }}');">
+            <div class="hero-slide-content">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-lg-6">
+                            <h1 class="display-4 fw-bold mb-4">{{ slider.title }}</h1>
+                            <p class="lead mb-4">{{ slider.subtitle }}</p>
+                            {% if slider.button_text and slider.button_url %}
+                            <div class="mt-4">
+                                <a href="{{ slider.button_url }}" class="btn btn-primary btn-lg">
+                                    <i class="material-icons me-2">{{ slider.button_icon|default:"arrow_forward" }}</i>
+                                    {{ slider.button_text }}
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        
+        <div class="hero-slider-controls">
+            {% for slider in hero_sliders %}
+            <span class="hero-slider-dot {% if forloop.first %}active{% endif %}" data-slide="{{ forloop.counter }}"></span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% else %}
+<!-- Static Hero Section (fallback) -->
+<div class="container mt-5">
+    <div class="hero-section">
+        <div class="container">
+            <div class="row align-items-center justify-content-center">
+                <div class="col-lg-6 text-center">
+                    <h1 class="display-4 fw-bold mb-4">{{ site_settings.hero_title }}</h1>
+                    <p class="lead mb-4">{{ site_settings.hero_subtitle }}</p>
+                    {% if not user.is_authenticated %}
+                    <div class="mt-4">
+                        <a href="#" class="btn btn-primary btn-lg me-2">
+                            <i class="material-icons me-2">person_add</i> Get Started
+                        </a>
+                        <a href="#" class="btn btn-outline-light btn-lg">
+                            <i class="material-icons me-2">login</i> Login
+                        </a>
+                    </div>
+                    {% else %}
+                    <div class="mt-4">
+                        <a href="#" class="btn btn-primary btn-lg">
+                            <i class="material-icons me-2">dashboard</i> Go to Dashboard
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Features Section -->
+<div class="container mb-5">
+    <div class="text-center mb-5 section-title">
+        <h2 class="fw-bold">{{ site_settings.features_title|default:"Features" }}</h2>
+        <p class="text-muted">{{ site_settings.features_subtitle|default:"Everything you need to manage your farm efficiently" }}</p>
+    </div>
+    
+    <div class="row">
+        {% if features %}
+            {% for feature in features %}
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="material-icons feature-icon">{{ feature.icon }}</i>
+                        <h3 class="h4 mb-3">{{ feature.title }}</h3>
+                        <p class="text-muted">{{ feature.description }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <!-- Static features as fallback -->
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="material-icons feature-icon">landscape</i>
+                        <h3 class="h4 mb-3">Farm Management</h3>
+                        <p class="text-muted">Track all your farms, fields, and crops in one place. Monitor soil health, crop rotation, and field productivity.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="material-icons feature-icon">event_note</i>
+                        <h3 class="h4 mb-3">Activity Tracking</h3>
+                        <p class="text-muted">Schedule and monitor all farm activities and tasks. Get reminders for important events like planting and harvesting.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="card feature-card shadow-sm h-100">
+                    <div class="card-body text-center p-4">
+                        <i class="material-icons feature-icon">attach_money</i>
+                        <h3 class="h4 mb-3">Financial Management</h3>
+                        <p class="text-muted">Track income, expenses, and generate financial reports. Monitor profitability for each crop and field.</p>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Stats Section -->
+{% if statistics %}
+<div class="stats-section">
+    <div class="container">
+        <div class="row">
+            {% for stat in statistics %}
+            <div class="col-md-3 mb-4">
+                <div class="stat-card shadow-sm">
+                    <div class="stat-value">{{ stat.value }}</div>
+                    <div class="text-muted">{{ stat.label }}</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- How It Works Section -->
+<div class="how-it-works-section">
+    <div class="container">
+        <div class="text-center mb-5 section-title">
+            <h2 class="fw-bold">{{ site_settings.how_it_works_title|default:"How It Works" }}</h2>
+            <p class="text-muted">{{ site_settings.how_it_works_subtitle|default:"Get started with Gitako in three simple steps" }}</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3 class="h5 mt-3 mb-3">Register and Setup</h3>
+                    <p class="text-muted mb-0">Create your account and set up your farm profile. Add details about your farm location, size, and type.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3 class="h5 mt-3 mb-3">Add Your Fields</h3>
+                    <p class="text-muted mb-0">Create fields within your farm and specify their characteristics. Track soil types, crops, and field-specific activities.</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 mb-4">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3 class="h5 mt-3 mb-3">Manage and Monitor</h3>
+                    <p class="text-muted mb-0">Track activities, manage inventory, monitor finances, and get insights to optimize your farm operations.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CTA Section -->
+<div class="container">
+    <div class="cta-section">
+        <div class="container text-center">
+            <h2 class="display-5 fw-bold mb-4">{{ site_settings.cta_title|default:"Ready to Transform Your Farm Management?" }}</h2>
+            <p class="lead mb-4">{{ site_settings.cta_subtitle|default:"Join thousands of farmers who are already using Gitako to increase productivity and profitability." }}</p>
+            {% if not user.is_authenticated %}
+            <a href="#" class="btn btn-cta btn-lg">
+                <i class="material-icons me-2">rocket_launch</i> {{ site_settings.cta_button_text|default:"Get Started for Free" }}
+            </a>
+            {% else %}
+            <a href="#" class="btn btn-cta btn-lg">
+                <i class="material-icons me-2">dashboard</i> Go to Dashboard
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Testimonials Section -->
+{% if testimonials %}
+<div class="container mb-5">
+    <div class="text-center mb-5 section-title">
+        <h2 class="fw-bold">{{ site_settings.testimonials_title|default:"What Farmers Say" }}</h2>
+        <p class="text-muted">{{ site_settings.testimonials_subtitle|default:"Hear from farmers who have transformed their operations with Gitako" }}</p>
+    </div>
+    
+    <div class="row">
+        {% for testimonial in testimonials %}
+        <div class="col-md-4 mb-4">
+            <div class="card testimonial-card shadow-sm">
+                <div class="card-body p-4">
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="{{ testimonial.image.url }}" alt="{{ testimonial.name }}" class="testimonial-img me-3">
+                        <div>
+                            <h5 class="mb-0">{{ testimonial.name }}</h5>
+                            <p class="text-muted mb-0">{{ testimonial.position }}</p>
+                        </div>
+                    </div>
+                    <p class="testimonial-quote mb-0">{{ testimonial.content }}</p>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Hero slider functionality
+    document.addEventListener('DOMContentLoaded', function() {
+        const slides = document.querySelectorAll('.hero-slide');
+        const dots = document.querySelectorAll('.hero-slider-dot');
+        
+        if (slides.length > 1) {
+            // Auto-rotate slides
+            let currentSlide = 0;
+            
+            function showSlide(index) {
+                // Hide all slides
+                slides.forEach(slide => {
+                    slide.classList.remove('active');
+                });
+                
+                // Deactivate all dots
+                dots.forEach(dot => {
+                    dot.classList.remove('active');
+                });
+                
+                // Show the selected slide
+                slides[index].classList.add('active');
+                dots[index].classList.add('active');
+                
+                currentSlide = index;
+            }
+            
+            // Set up click handlers for dots
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    showSlide(index);
+                });
+            });
+            
+            // Auto-rotate slides every 5 seconds
+            setInterval(() => {
+                let nextSlide = (currentSlide + 1) % slides.length;
+                showSlide(nextSlide);
+            }, 5000);
+        }
+        
+        // Add animation to feature cards
+        const featureCards = document.querySelectorAll('.feature-card');
+        featureCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+        
+        // Add animation to stat cards
+        const statCards = document.querySelectorAll('.stat-card');
+        statCards.forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            card.style.transition = 'opacity 0.5s ease, transform 0.5s ease';
+            
+            setTimeout(() => {
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, 100 * index);
+        });
+    });
+</script>
+{% endblock %}
+
+

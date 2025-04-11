@@ -5,8 +5,10 @@ Base settings for gitako project.
 from pathlib import Path
 import os
 from datetime import timedelta
+from gitako.logging import configure_logging
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
+# This sets BASE_DIR to the directory containing the settings package
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 # Application definition
@@ -41,6 +43,7 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.financials',
     'apps.recommendations',
+    'apps.site_config',
     'channels',
     'apps.notifications',
 ]
@@ -57,16 +60,19 @@ CHANNEL_LAYERS = {
 }
 
 # Add to MIDDLEWARE
+# Middleware configuration
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'gitako.middleware.APIAnalyticsMiddleware',
+    'gitako.middleware.RequestIDMiddleware',  # Add request ID
+    'gitako.middleware.APILoggingMiddleware',  # Log API requests
+    'gitako.middleware.ExceptionMiddleware',  # Handle exceptions
+    'allauth.account.middleware.AccountMiddleware',  # Add this line for django-allauth
 ]
 
 # Add analytics logger
@@ -189,14 +195,19 @@ SIMPLE_JWT = {
     'TOKEN_TYPE_CLAIM': 'token_type',
 }
 
-# Django AllAuth settings
-ACCOUNT_EMAIL_REQUIRED = True
-ACCOUNT_UNIQUE_EMAIL = True
-ACCOUNT_USERNAME_REQUIRED = True
-ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+
+
+# Django AllAuth settings - Updated to use new format
+# Replace deprecated settings with the new format
+ACCOUNT_SIGNUP_FIELDS = {
+    'email': {'required': True, 'verified': True}, 
+}
 ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_CONFIRMATION_EXPIRE_DAYS = 3
 ACCOUNT_CONFIRM_EMAIL_ON_GET = True
 ACCOUNT_LOGIN_ON_EMAIL_CONFIRMATION = True
+
+
 
 # Django Rest Auth settings
 REST_AUTH = {
@@ -210,3 +221,54 @@ REST_AUTH = {
 
 # Ensure logs directory exists
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+
+# Replace the existing LOGGING configuration with this:
+
+# Configure logging
+LOGGING = {
+    'version': 1,  # Required for Django's logging configuration
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'logs/gitako.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'gitako': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'gitako.analytics': {
+            'handlers': ['file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+    },
+}
+
+# Remove this line if it exists, as we're now defining LOGGING directly
+# LOGGING = configure_logging()

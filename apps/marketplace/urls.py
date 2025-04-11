@@ -13,5 +13,5 @@ router.register(r'orders', OrderViewSet, basename='order')
 router.register(r'reviews', ReviewViewSet, basename='review')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path('marketplace/', include(router.urls)),
 ]

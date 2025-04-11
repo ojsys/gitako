@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Gitako - Farm Management{% endblock %}</title>
+    <!-- Material Design Bootstrap CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.css" rel="stylesheet">
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/static/css/style.css">
+    {% block extra_css %}{% endblock %}
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f8f9fa;
+        }
+        .navbar {
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .navbar-brand {
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+        .page-footer {
+            background-color: #3f51b5;
+            color: white;
+        }
+        .btn-floating {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            z-index: 999;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="material-icons">eco</i> GITAKO
+            </a>
+            <button class="navbar-toggler" type="button" data-mdb-toggle="collapse" data-mdb-target="#navbarNav">
+                <i class="material-icons">menu</i>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'site_config:home' %}">
+                            <i class="material-icons">home</i> Home
+                        </a>
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'farms:list' %}">
+                            <i class="material-icons">landscape</i> Farms
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'activities:list' %}">
+                            <i class="material-icons">event</i> Activities
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'inventory:list' %}">
+                            <i class="material-icons">inventory</i> Inventory
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'financials:dashboard' %}">
+                            <i class="material-icons">attach_money</i> Financials
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{% url 'marketplace:list' %}">
+                            <i class="material-icons">shopping_cart</i> Marketplace
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <ul class="navbar-nav">
+                    {% if user.is_authenticated %}
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-mdb-toggle="dropdown">
+                            <i class="material-icons me-2">account_circle</i>
+                            {{ user.username }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="#">
+                                <i class="material-icons me-2">person</i> Profile
+                            </a></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="material-icons me-2">settings</i> Settings
+                            </a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">
+                                <i class="material-icons me-2">logout</i> Logout
+                            </a></li>
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" id="notificationsDropdown">
+                            <i class="material-icons">notifications</i>
+                            <span class="badge rounded-pill badge-notification bg-danger">1</span>
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="material-icons">login</i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">
+                            <i class="material-icons">person_add</i> Register
+                        </a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main content -->
+    <div class="container my-5">
+        {% if messages %}
+        <div class="messages mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-mdb-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </div>
+
+    <!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <!-- Company Info -->
+            <div class="col-lg-4 mb-5 mb-lg-0">
+                <a href="#" class="footer-logo">Gitako</a>
+                <div class="footer-about">
+                    <p>Gitako is a comprehensive farm management platform designed to help farmers optimize their operations, increase productivity, and maximize profitability.</p>
+                </div>
+                <div class="footer-social">
+                    <a href="#"><i class="material-icons">facebook</i></a>
+                    <a href="#"><i class="material-icons">twitter</i></a>
+                    <a href="#"><i class="material-icons">instagram</i></a>
+                    <a href="#"><i class="material-icons">linkedin</i></a>
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div class="col-lg-2 col-md-4 mb-5 mb-md-0">
+                <h5>Quick Links</h5>
+                <ul class="footer-links">
+                    <li><a href="#">Home</a></li>
+                    <li><a href="#">About Us</a></li>
+                    <li><a href="#">Features</a></li>
+                    <li><a href="#">Pricing</a></li>
+                    <li><a href="#">Blog</a></li>
+                </ul>
+            </div>
+            
+            <!-- Services -->
+            <div class="col-lg-2 col-md-4 mb-5 mb-md-0">
+                <h5>Services</h5>
+                <ul class="footer-links">
+                    <li><a href="#">Farm Management</a></li>
+                    <li><a href="#">Crop Planning</a></li>
+                    <li><a href="#">Inventory Tracking</a></li>
+                    <li><a href="#">Financial Analysis</a></li>
+                    <li><a href="#">Market Access</a></li>
+                </ul>
+            </div>
+            
+            <!-- Contact Info -->
+            <div class="col-lg-4 col-md-4">
+                <h5>Contact Us</h5>
+                <div class="footer-contact-item">
+                    <i class="material-icons footer-contact-icon">location_on</i>
+                    <div>123 Farm Street, Agritown, Country</div>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="material-icons footer-contact-icon">phone</i>
+                    <div>+1 (123) 456-7890</div>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="material-icons footer-contact-icon">email</i>
+                    <div>info@gitako.com</div>
+                </div>
+                <div class="footer-contact-item">
+                    <i class="material-icons footer-contact-icon">access_time</i>
+                    <div>Monday - Friday: 9am - 5pm</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Footer Bottom -->
+        <div class="footer-bottom">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <p class="mb-md-0">© {{ site_settings.copyright_year|default:"2023" }} {{ site_settings.site_name|default:"Gitako" }}. All rights reserved.</p>
+                </div>
+                <div class="col-md-6 text-md-end footer-bottom-links">
+                    <a href="#">Privacy Policy</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Cookie Policy</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</footer>
+
+    <!-- MDB JS -->
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.4.0/mdb.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

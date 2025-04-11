@@ -62,6 +62,7 @@ INSTALLED_APPS = [
     'apps.inventory',
     'apps.financials',
     'apps.recommendations',
+    'site_config',
 ]
 
 MIDDLEWARE = [
@@ -277,3 +278,16 @@ LOGGING = {
 
 # Ensure logs directory exists
 os.makedirs(os.path.join(BASE_DIR, 'logs'), exist_ok=True)
+
+# Replace the deprecated settings
+# ACCOUNT_EMAIL_REQUIRED = True
+# ACCOUNT_UNIQUE_EMAIL = True
+# ACCOUNT_USERNAME_REQUIRED = True
+# ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+
+# New settings format
+ACCOUNT_SIGNUP_FIELDS = {
+    'email': {'required': True}      # Adjust based on your requirements
+}
+
+

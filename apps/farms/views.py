@@ -1,14 +1,16 @@
-from rest_framework import viewsets, permissions, filters, status
+from rest_framework import viewsets, permissions, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from drf_yasg.utils import swagger_auto_schema
 from drf_yasg import openapi
 from api.permissions import IsFarmOwner, IsResourceOwner
-from .models import Farm, Field, Crop, CropCycle
+from .models import Farm, Field, Crop, CropVariety, CropCycle, SoilTest, WeatherRecord
 from .serializers import (
-    FarmSerializer, FieldSerializer, CropSerializer, CropCycleSerializer,
-    CropCycleCreateSerializer, CropCycleUpdateSerializer
+    FarmSerializer, FieldSerializer, CropSerializer, 
+    CropVarietySerializer, CropCycleSerializer, 
+    SoilTestSerializer, WeatherRecordSerializer,
+    
 )
 
 class FarmViewSet(viewsets.ModelViewSet):
@@ -196,24 +198,25 @@ class CropCycleViewSet(viewsets.ModelViewSet):
     A crop cycle represents the planting, growing, and harvesting of a specific crop
     in a specific field during a specific time period.
     """
+    serializer_class = CropCycleSerializer
     permission_classes = [permissions.IsAuthenticated, IsFarmOwner]
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['field', 'crop', 'status']
     search_fields = ['notes']
     ordering_fields = ['start_date', 'end_date', 'created_at']
     
-    def get_serializer_class(self):
-        """
-        Use different serializers for different actions:
-        - create: CropCycleCreateSerializer
-        - update/partial_update: CropCycleUpdateSerializer
-        - others: CropCycleSerializer
-        """
-        if self.action == 'create':
-            return CropCycleCreateSerializer
-        elif self.action in ['update', 'partial_update']:
-            return CropCycleUpdateSerializer
-        return CropCycleSerializer
+    # def get_serializer_class(self):
+    #     """
+    #     Use different serializers for different actions:
+    #     - create: CropCycleCreateSerializer
+    #     - update/partial_update: CropCycleUpdateSerializer
+    #     - others: CropCycleSerializer
+    #     """
+    #     if self.action == 'create':
+    #         return CropCycleCreateSerializer
+    #     elif self.action in ['update', 'partial_update']:
+    #         return CropCycleUpdateSerializer
+    #     return CropCycleSerializer
     
     def get_queryset(self):
         """
@@ -275,3 +278,64 @@ class CropCycleViewSet(viewsets.ModelViewSet):
         
         serializer = self.get_serializer(crop_cycle)
         return Response(serializer.data)
+
+
+class CropVarietyViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for crop varieties.
+    Allows CRUD operations on crop varieties.
+    """
+    queryset = CropVariety.objects.all()
+    serializer_class = CropVarietySerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['crop', 'name', 'maturity_days']
+    search_fields = ['name', 'description']
+    
+    def get_queryset(self):
+        """Filter queryset to only show varieties for crops owned by the user"""
+        if self.request.user.is_staff:
+            return CropVariety.objects.all()
+        return CropVariety.objects.filter(crop__in=Crop.objects.all())
+    
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class SoilTestViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for soil tests.
+    Allows CRUD operations on soil test records.
+    """
+    queryset = SoilTest.objects.all()
+    serializer_class = SoilTestSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['field', 'test_date', 'ph_level']
+    
+    def get_queryset(self):
+        """Filter queryset to only show soil tests for fields owned by the user"""
+        if self.request.user.is_staff:
+            return SoilTest.objects.all()
+        return SoilTest.objects.filter(field__farm__owner=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save()
+
+
+class WeatherRecordViewSet(viewsets.ModelViewSet):
+    """
+    API endpoint for weather records.
+    Allows CRUD operations on weather records.
+    """
+    queryset = WeatherRecord.objects.all()
+    serializer_class = WeatherRecordSerializer
+    permission_classes = [permissions.IsAuthenticated]
+    filterset_fields = ['farm', 'record_date', 'temperature', 'precipitation']
+    
+    def get_queryset(self):
+        """Filter queryset to only show weather records for farms owned by the user"""
+        if self.request.user.is_staff:
+            return WeatherRecord.objects.all()
+        return WeatherRecord.objects.filter(farm__owner=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save()
